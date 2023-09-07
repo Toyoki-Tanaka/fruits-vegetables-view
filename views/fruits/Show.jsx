@@ -10,6 +10,7 @@ class Show extends React.Component {
                 {
                     fruit.readyToEat ? "It's ready to eat" : "It's not ready to eat yet"
                 }
+                <img src={fruit.img}></img>
             </div>
         );
     }

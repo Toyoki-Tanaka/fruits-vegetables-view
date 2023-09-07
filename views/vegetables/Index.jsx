@@ -10,7 +10,7 @@ class Index extends React.Component {
                         vegetables.map((vegetable, i) => {
                             return (
                                 <li>
-                                    <a href={`/vegetables/${i}`}>
+                                    <a href={`/vegetables/${vegetable._id}`}>
                                         {vegetable.name}
                                     </a>
                                 </li>
@@ -20,7 +20,7 @@ class Index extends React.Component {
                 </ul>
 
                 <nav>
-                    <a href="/fruits/new">Create a New Fruit</a>
+                    <a href="/vegetables/new">Create a New Vegetable</a>
                 </nav>
             </div>
         )
