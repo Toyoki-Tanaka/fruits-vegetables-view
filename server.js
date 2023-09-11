@@ -5,6 +5,7 @@ const PORT = process.env.PORT || 3000;
 const Fruit = require('./models/fruit');
 const Vegetable = require('./models/vegetable');
 const mongoose = require('mongoose')
+const methodOverride = require('method-override')
 /// Database Connection
 
 //... and then farther down the file
@@ -23,7 +24,46 @@ const jsxViewEngine = require('jsx-view-engine');
 app.set('view engine', 'jsx');
 app.engine('jsx', jsxViewEngine());
 
+
+app.use(express.static('public'));
+
+
 app.use(express.urlencoded({ extended: false }));
+//after app has been defined
+//use methodOverride.  We'll be adding a query parameter to our delete form named _method
+app.use(methodOverride('_method'));
+
+
+
+// Seed Route
+
+app.get('/fruits/seed', async (req, res) => {
+    try {
+        await Fruit.create([
+            {
+                name: 'grapefruit',
+                color: 'pink',
+                readyToEat: true
+            },
+            {
+                name: 'grape',
+                color: 'purple',
+                readyToEat: false
+            },
+            {
+                name: 'avocado',
+                color: 'green',
+                readyToEat: true
+            }
+        ])
+    }
+    catch (err) {
+        res.status(400).send(err)
+    }
+})
+
+
+
 
 // Index Route
 app.get('/fruits', async (req, res) => {
@@ -57,6 +97,42 @@ app.get('/vegetables/new', (req, res) => {
     res.render('vegetables/New')
 })
 
+
+// Delete Route
+
+app.delete('/fruits/:id', async (req, res) => {
+    try {
+        await Fruit.findByIdAndDelete(req.params.id)
+        res.status(200).redirect('/fruits')
+    } catch (err) {
+        res.status(400).send(err)
+    }
+})
+
+// Update
+app.put('/fruits/:id', async (req, res) => {
+    try {
+        if (req.body.readyToEat === 'on') {
+            req.body.readyToEat = true;
+        }
+        else {
+            req.body.readyToEat = false;
+        }
+        const updatedFruit = await Fruit.findByIdAndUpdate(
+            // id is from the url that we got by clicking on the edit <a/> tag
+            req.params.id,
+            // the information from the form, with the update that we made above
+            req.body,
+            // need this to prevent a delay in the update
+            { new: true })
+        console.log(updatedFruit);
+        res.redirect(`/fruits/${req.params.id}`);
+    } catch (err) {
+        res.status(400).send(err);
+    }
+});
+
+
 // Post Route
 app.post('/fruits', async (req, res) => {
     try {
@@ -71,7 +147,7 @@ app.post('/fruits', async (req, res) => {
 
         const createdFruit = await Fruit.create(req.body)
 
-        res.status(201).redirect('/fruits')
+        res.status(201).redirect('/fruits/')
     } catch (err) {
         res.status(400).send(err)
     }
@@ -91,7 +167,18 @@ app.post('/vegetables', async (req, res) => {
     }
 });
 
-
+// Edit
+app.get('/fruits/:id/edit', async (req, res) => {
+    try {
+        // find the document in the database that we want to update 
+        const foundFruit = await Fruit.findById(req.params.id);
+        res.render('fruits/Edit', {
+            fruit: foundFruit //pass in the foundFruit so that we can prefill the form
+        })
+    } catch (err) {
+        res.status(400).send(err);
+    }
+})
 
 //Show Route
 app.get('/fruits/:id', async (req, res) => {
